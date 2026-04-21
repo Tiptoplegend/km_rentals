@@ -1,0 +1,85 @@
+# Car Rental App MVP Roadmap
+
+As the Chief Product Manager and Engineer, I've outlined a realistic **6-Week MVP Roadmap** for the Car Rental App. The goal is to deliver a functional MVP (Minimum Viable Product) that supports both Renters and Owners, with a testable milestone at the end of each weekly phase.
+
+## User Review Required
+
+> [!IMPORTANT]  
+> Please review this timeline. Weekly sprints assume that UI screens are mostly implemented based on prior work, focusing heavily on integrating logic, state management, connecting to the backend (Firebase), and rigorous testing. Let me know if you would like to expand or contract any of these phases.
+
+---
+
+## Phase 1 (Week 1): Foundation & Authentication
+**Goal**: Establish a robust, secure infrastructure and user onboarding experience.
+
+* **Deliverables**:
+  * Finalize the **Onboarding, Login, and Signup** UIs.
+  * Integrate **Firebase Authentication** for email/password and social logins (if applicable).
+  * Structure core state management (e.g., using Provider, Riverpod, or Bloc) to handle session state.
+  * Define Firestore data models (`Users`, `Vehicles`, `Bookings`).
+* **Weekly Testing Focus**: Users (both Renters and Owners) can successfully create accounts, log in, sign out, and their session state persists securely.
+
+## Phase 2 (Week 2): Owner Experience - Fleet Management
+**Goal**: Empower owners to list and manage their vehicles on the platform.
+
+* **Deliverables**:
+  * Connect the **Owner Fleet Management** module to Firestore.
+  * Implement functionality for Owners to **Add, Edit, and Remove** vehicles from their fleet.
+  * Add image uploading capabilities (using Firebase Storage).
+  * Set up visibility toggles (e.g., mark a car as "In Service" or "Available").
+* **Weekly Testing Focus**: Owners can successfully upload a car profile (with images to storage and data to Firestore). Data correctly models exactly what will be needed for Renters.
+
+## Phase 3 (Week 3): Renter Experience - Discovery
+**Goal**: Allow renters to seamlessly browse and view available listed vehicles.
+
+* **Deliverables**:
+  * Connect the **Renter Home Dashboard** to the Firestore `Vehicles` collection (populated by Owners in Phase 2).
+  * Implement dynamic fetching for the "My Cars" or "Available Cars" feed.
+  * Implement **Search and Filter** functionalities (by brand, price, category).
+  * Build out the **Car Details Page** displaying dynamic imagery, specs, and availability.
+* **Weekly Testing Focus**: Verify that vehicles uploaded by Owners in Phase 2 display correctly on the Renter feed, search filters are accurate, and edge cases are handled gracefully.
+
+## Phase 4 (Week 4): The Booking Engine & Order Management
+**Goal**: Connect Renters and Owners through a functional booking funnel.
+
+* **Deliverables**:
+  * Implement the Renter **Booking Flow** (Selecting dates, verifying total cost, submitting request).
+  * Connect the **Owner Orders Management** module so Owners receive booking requests (Pending state).
+  * Implement Owner actions: **Approve, Reject, or Cancel** orders.
+  * Update the **Renter Bookings Tab** to track Active, Upcoming, and Past trips based on Owner approval.
+* **Weekly Testing Focus**: End-to-End booking test. Renter requests a car -> Owner sees it in "Pending" -> Owner Approves -> Renter's dashboard updates to "Upcoming".
+
+## Phase 5 (Week 5): Earnings & Notifications
+**Goal**: Provide financial insights to owners and keep users informed of status changes.
+
+* **Deliverables**:
+  * Build the logic for the **Owner Earnings Dashboard** (calculating total revenue from completed bookings).
+  * Set up **Push Notifications** (via FCM) or basic in-app notifications so Renters get alerted when a booking is approved/rejected.
+  * Implement the completion flow: moving an Active trip to a Completed state.
+* **Weekly Testing Focus**: Financial logic calculation accuracy and ensuring real-time UI updates/notifications fire correctly upon booking status changes.
+
+## Phase 6 (Week 6): UAT, Polish & Pre-Launch
+**Goal**: Finalize the application, squash bugs, and prepare for deployment.
+
+* **Deliverables**:
+  * **End-to-End User Acceptance Testing (UAT)**: Simulating the entire lifecycle under test conditions.
+  * Resolve any state bugs, loading state missing UI, or error handling issues (e.g., "5 NOT_FOUND" Firestore write errors).
+  * Polish UI animations, typography, and ensure the premium aesthetic is perfectly consistent.
+  * Prepare submission assets for iOS App Store and Google Play Store.
+* **Weekly Testing Focus**: System stability, performance, UX consistency, and zero-crash reporting.
+
+---
+
+## Open Questions
+
+> [!WARNING]  
+> 1. **Payments Setup**: Should integrating a real payment processor (like Stripe) be part of Phase 4/5, or should the MVP use a simulated/cash payment model?
+> 2. **Backend Services**: We previously worked on a Node/Express backend for waitlist/approvals. Will that custom backend handle our booking logic, or should we rely entirely on Firebase/Firestore directly from the Flutter app for the MVP?
+> 3. Does a 6-week timeframe align with your current business expectations?
+
+---
+
+## Verification Plan
+
+### Weekly Sprints
+At the end of every week, I will deploy a test build to an emulator or TestFlight/Play Console equivalent for internal testing. We will hold a brief review to verify that the weekly focus points have been met before progressing to the next phase.
