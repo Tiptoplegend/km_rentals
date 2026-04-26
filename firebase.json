@@ -1,0 +1,31 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "km-rentals",
+          "appId": "1:796583590652:android:6b8f80e227d72c78243579",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "km-rentals",
+          "appId": "1:796583590652:ios:1e2eac7be3200e79243579",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "km-rentals",
+          "configurations": {
+            "android": "1:796583590652:android:6b8f80e227d72c78243579",
+            "ios": "1:796583590652:ios:1e2eac7be3200e79243579",
+            "web": "1:796583590652:web:ac2897ab6c756eba243579"
+          }
+        }
+      }
+    }
+  }
+}

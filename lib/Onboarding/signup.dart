@@ -1,5 +1,5 @@
-import 'package:car_rent_app/Owner/owner_navigation.dart';
-import 'package:car_rent_app/Renter/Navigation.dart';
+import 'package:car_rent_app/auth_wrapper.dart';
+import 'package:car_rent_app/authservices.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,13 +17,102 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   bool _obscurePassword = true;
   bool _acceptedTerms = false;
+  bool _isLoading = false;
+
+  // Controllers to capture form input
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // ─── THE ACTUAL SIGNUP LOGIC ─────────────────────────────────────────────────
+  Future<void> _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Basic validation
+    if (name.isEmpty || phone.isEmpty || email.isEmpty || password.isEmpty) {
+      _showSnackBar('Please fill in all fields.', isError: true);
+      return;
+    }
+
+    if (password.length < 6) {
+      _showSnackBar('Password must be at least 6 characters.', isError: true);
+      return;
+    }
+
+    if (!_acceptedTerms) {
+      _showSnackBar('Please accept the Terms & Conditions to continue.',
+          isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Call the AuthService which creates Auth + Firestore profile
+      await authservice.value.createAccount(
+        email: email,
+        password: password,
+        fullName: name,
+        phone: phone,
+        role: widget.role, // 'renter' or 'owner' from the previous screen
+      );
+
+      if (!mounted) return;
+
+      // Route to the AuthWrapper to handle global state
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthWrapper()),
+        (route) => false,
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+      // Show the Firebase error message to the user
+      String message = e.toString();
+      if (message.contains('email-already-in-use')) {
+        message = 'This email is already registered. Try logging in.';
+      } else if (message.contains('weak-password')) {
+        message = 'Password is too weak. Use at least 6 characters.';
+      } else if (message.contains('invalid-email')) {
+        message = 'Please enter a valid email address.';
+      }
+      _showSnackBar(message, isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.plusJakartaSans()),
+        backgroundColor:
+            isError ? const Color(0xFFD32F2F) : const Color(0xFF388E3C),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isOwner = widget.role == 'owner';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5B754),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           // Gold gradient background
@@ -138,6 +227,7 @@ class _SignUpState extends State<SignUp> {
               label: 'Full Name',
               hint: 'John Doe',
               prefixIcon: Icons.person_outline,
+              controller: _nameController,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -145,12 +235,14 @@ class _SignUpState extends State<SignUp> {
               hint: '+233 00 000 0000',
               prefixIcon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
+              controller: _phoneController,
             ),
             const SizedBox(height: 20),
             _buildInputField(
               label: 'Email Address',
               hint: 'hello@example.com',
               prefixIcon: Icons.email_outlined,
+              controller: _emailController,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -158,6 +250,7 @@ class _SignUpState extends State<SignUp> {
               hint: '••••••••••••',
               prefixIcon: Icons.lock_outline,
               isPassword: true,
+              controller: _passwordController,
             ),
             const SizedBox(height: 24),
             _buildTermsCheckbox(isOwner),
@@ -166,38 +259,7 @@ class _SignUpState extends State<SignUp> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  if (!_acceptedTerms) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Please accept the Terms & Conditions to continue.',
-                          style: GoogleFonts.plusJakartaSans(),
-                        ),
-                        backgroundColor: const Color(0xFFD32F2F),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    );
-                    return;
-                  }
-
-                  if (!isOwner) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Navigation(),
-                      ),
-                    );
-                  } else {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const OwnerNavigation(),
-                      ),
-                    );
-                  }
-                },
+                onPressed: _isLoading ? null : _handleSignUp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E1E1E),
                   foregroundColor: Colors.white,
@@ -206,13 +268,22 @@ class _SignUpState extends State<SignUp> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: Text(
-                  'Create Account',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Text(
+                        'Create Account',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 32),
@@ -328,6 +399,7 @@ class _SignUpState extends State<SignUp> {
     required String label,
     required String hint,
     required IconData prefixIcon,
+    required TextEditingController controller,
     bool isPassword = false,
     TextInputType? keyboardType,
   }) {
@@ -344,6 +416,7 @@ class _SignUpState extends State<SignUp> {
         ),
         const SizedBox(height: 10),
         TextFormField(
+          controller: controller,
           obscureText: isPassword ? _obscurePassword : false,
           keyboardType: keyboardType,
           cursorColor: const Color(0xFFF5B754),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:car_rent_app/authservices.dart';
+import 'package:car_rent_app/auth_wrapper.dart';
 import 'package:car_rent_app/Owner/owner_theme_colors.dart';
 import 'package:car_rent_app/Owner/fleet.dart';
 
@@ -286,7 +288,9 @@ class _OwnerSettingsState extends State<OwnerSettings> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const OwnerFleetScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const OwnerFleetScreen(),
+                        ),
                       );
                     },
                   ),
@@ -325,6 +329,15 @@ class _OwnerSettingsState extends State<OwnerSettings> {
                     title: 'Log Out',
                     showDivider: false,
                     trailing: const SizedBox.shrink(), // No chevron for logout
+                    onTap: () async {
+                      await authservice.value.signOut();
+                      if (!context.mounted) return;
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AuthWrapper()),
+                        (route) => false,
+                      );
+                    },
                   ),
                 ]),
               ],

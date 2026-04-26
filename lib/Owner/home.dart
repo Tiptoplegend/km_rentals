@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:car_rent_app/Owner/fleet.dart';
 
 class Home extends StatefulWidget {
@@ -17,9 +19,41 @@ class _HomeState extends State<Home> {
 
   /// When false, the amount is shown as asterisks.
   bool _earningsVisible = true;
+  String _firstName = '';
 
   static const _earningsAmount = 'GHC 3,000.00';
   static const _earningsMasked = 'GHC **********';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Try displayName first
+    if (user.displayName != null && user.displayName!.isNotEmpty) {
+      setState(() {
+        _firstName = user.displayName!.split(' ').first;
+      });
+      return;
+    }
+
+    // Fall back to Firestore fullName
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists && doc.data()?['fullName'] != null) {
+      setState(() {
+        _firstName = (doc.data()!['fullName'] as String).split(' ').first;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,18 +113,18 @@ class _HomeState extends State<Home> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
-                                'Hi! Jerry',
-                                style: TextStyle(
+                                'Hi! $_firstName',
+                                style: const TextStyle(
                                   fontSize: 25,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                   height: 1.15,
                                 ),
                               ),
-                              SizedBox(height: 6),
-                              Text(
+                              const SizedBox(height: 6),
+                              const Text(
                                 'Manage your listings and orders',
                                 style: TextStyle(
                                   fontSize: 15,
@@ -115,7 +149,7 @@ class _HomeState extends State<Home> {
                             radius: 26,
                             backgroundColor: const Color(0xFF3A3A3A),
                             child: Text(
-                              'J',
+                              _firstName.isNotEmpty ? _firstName[0].toUpperCase() : '',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,

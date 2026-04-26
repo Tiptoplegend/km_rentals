@@ -15,3 +15,16 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+Payment Flow 
+1. Renter books → pays upfront (full amount or deposit)
+         ↓
+2. Funds held by you (not yet released to owner)
+         ↓
+3. Renter picks up car → rental begins
+         ↓
+4. Rental ends, car returned, no damage reported
+         ↓
+5. You release owner's share (minus your cut)
+

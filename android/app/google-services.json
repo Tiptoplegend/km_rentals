@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "796583590652",
+    "project_id": "km-rentals",
+    "storage_bucket": "km-rentals.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796583590652:android:6b8f80e227d72c78243579",
+        "android_client_info": {
+          "package_name": "com.example.car_rent_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "796583590652-p3aiuog5c7cjtn74r59t69hnbk67vn5t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtGr2yjNHa1Z2mRsYR1bEpd1vAkTydlX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "796583590652-p3aiuog5c7cjtn74r59t69hnbk67vn5t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "796583590652-iqa5jd026qbh9tivs92uf8jvbmskhtd3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.carRentApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

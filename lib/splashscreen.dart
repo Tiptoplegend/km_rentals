@@ -1,4 +1,4 @@
-import 'package:car_rent_app/Onboarding/onboarding.dart';
+import 'package:car_rent_app/auth_wrapper.dart';
 import 'package:flutter/material.dart';
 
 class Splashscreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class _SplashscreenState extends State<Splashscreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Onboarding()),
+          MaterialPageRoute(builder: (context) => const AuthWrapper()),
         );
       }
     });

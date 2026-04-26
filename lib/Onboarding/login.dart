@@ -1,3 +1,5 @@
+import 'package:car_rent_app/auth_wrapper.dart';
+import 'package:car_rent_app/authservices.dart';
 import 'package:flutter/material.dart';
 import 'signup.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,11 +17,78 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _isLogin = true;
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  // Controllers for the login form
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // ─── LOGIN LOGIC ──────────────────────────────────────────────────────────
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar('Please fill in all fields.', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Sign in with Firebase Auth
+      await authservice.value.signIN(email: email, password: password);
+
+      // 2. Clear stack and route to AuthWrapper
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const AuthWrapper()),
+        (route) => false,
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+      String message = e.toString();
+      if (message.contains('user-not-found')) {
+        message = 'No account found with this email.';
+      } else if (message.contains('wrong-password') ||
+          message.contains('invalid-credential')) {
+        message = 'Incorrect password. Please try again.';
+      } else if (message.contains('invalid-email')) {
+        message = 'Please enter a valid email address.';
+      } else if (message.contains('too-many-requests')) {
+        message = 'Too many attempts. Please try again later.';
+      }
+      _showSnackBar(message, isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.plusJakartaSans()),
+        backgroundColor: isError
+            ? const Color(0xFFD32F2F)
+            : const Color(0xFF388E3C),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5B754),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           // The Premium Grid Pattern
@@ -361,6 +430,7 @@ class _LoginState extends State<Login> {
     required String label,
     required String hint,
     required IconData prefixIcon,
+    required TextEditingController controller,
     bool isPassword = false,
   }) {
     return Column(
@@ -371,11 +441,12 @@ class _LoginState extends State<Login> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1E1E1E), // Solid dark grey/black
+            color: const Color(0xFF1E1E1E),
           ),
         ),
         const SizedBox(height: 10),
         TextFormField(
+          controller: controller,
           obscureText: isPassword ? _obscurePassword : false,
           cursorColor: const Color(0xFFF5B754),
           style: GoogleFonts.plusJakartaSans(
@@ -385,7 +456,7 @@ class _LoginState extends State<Login> {
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFFAFAFA), // Lighter, cleaner grey
+            fillColor: const Color(0xFFFAFAFA),
             hintText: hint,
             hintStyle: GoogleFonts.plusJakartaSans(
               fontSize: 15,
@@ -444,6 +515,7 @@ class _LoginState extends State<Login> {
           label: 'Email Address',
           hint: 'hello@example.com',
           prefixIcon: Icons.email_outlined,
+          controller: _emailController,
         ),
         const SizedBox(height: 24),
         _buildInputField(
@@ -451,16 +523,22 @@ class _LoginState extends State<Login> {
           hint: '••••••••••••',
           prefixIcon: Icons.lock_outline,
           isPassword: true,
+          controller: _passwordController,
         ),
         const SizedBox(height: 7),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            'Forgot password',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFF5B754),
+          child: GestureDetector(
+            onTap: () {
+              // TODO: Navigate to forgot password screen
+            },
+            child: Text(
+              'Forgot password',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFFF5B754),
+              ),
             ),
           ),
         ),
@@ -469,24 +547,31 @@ class _LoginState extends State<Login> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
-              // TODO: Implement login logic
-            },
+            onPressed: _isLoading ? null : _handleLogin,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E1E1E), // Premium dark button
+              backgroundColor: const Color(0xFF1E1E1E),
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              'Login',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : Text(
+                    'Login',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 32),

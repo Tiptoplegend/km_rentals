@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:car_rent_app/authservices.dart';
+import 'package:car_rent_app/auth_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -214,6 +216,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Logout',
               isDestructive: true,
               showArrow: false,
+              onTap: () async {
+                await authservice.value.signOut();
+                if (!context.mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthWrapper()),
+                  (route) => false,
+                );
+              },
             ),
           ],
         ),
@@ -226,10 +237,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String title, {
     bool isDestructive = false,
     bool showArrow = true,
+    VoidCallback? onTap,
   }) {
     return InkWell(
       borderRadius: BorderRadius.circular(24),
-      onTap: () {}, // Add navigation logic here later
+      onTap: onTap ?? () {}, // Add navigation logic here later
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         child: Row(

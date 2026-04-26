@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:car_rent_app/Renter/card_details.dart';
 
 class Home extends StatefulWidget {
@@ -8,7 +10,51 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
+String _getGreeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) {
+    return 'Morning';
+  } else if (hour < 17) {
+    return 'Afternoon';
+  } else {
+    return 'Evening';
+  }
+}
+
 class _HomeState extends State<Home> {
+  String _firstName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Try displayName first
+    if (user.displayName != null && user.displayName!.isNotEmpty) {
+      setState(() {
+        _firstName = user.displayName!.split(' ').first;
+      });
+      return;
+    }
+
+    // Fall back to Firestore fullName
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists && doc.data()?['fullName'] != null) {
+      setState(() {
+        _firstName = (doc.data()!['fullName'] as String).split(' ').first;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +65,7 @@ class _HomeState extends State<Home> {
         child: Column(
           children: [
             SizedBox(height: 80),
-            _upperSection(),
+            _upperSection(_firstName),
             SizedBox(height: 30),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -74,7 +120,9 @@ class _HomeState extends State<Home> {
   }
 }
 
-Widget _upperSection() {
+Widget _upperSection(String firstName) {
+  final greeting = _getGreeting();
+
   return Container(
     child: Column(
       children: [
@@ -90,7 +138,7 @@ Widget _upperSection() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Morning! Jerry',
+                        '$greeting! $firstName',
                         style: TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.w600,
